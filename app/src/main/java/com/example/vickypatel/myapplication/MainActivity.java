@@ -2,6 +2,7 @@ package com.example.vickypatel.myapplication;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity
     // A default location (Sydney, Australia) and default zoom to use when location permission is
     // not granted.
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
-    private static final int DEFAULT_ZOOM = 15;
+    private static final int DEFAULT_ZOOM = 20;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
@@ -161,9 +163,12 @@ public class MainActivity extends AppCompatActivity
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mLastKnownLocation != null) {
+            LatLng currentLocation  = new LatLng(mLastKnownLocation.getLatitude(),
+                    mLastKnownLocation.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(mLastKnownLocation.getLatitude(),
-                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                    currentLocation, DEFAULT_ZOOM));
+            drawCircle(currentLocation);
+
         } else {
             Log.d("MainActivity", "Current location is null. Using defaults.");
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
@@ -204,5 +209,17 @@ public class MainActivity extends AppCompatActivity
         Log.d("MainActivity", "Play services connection failed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
     }
+
+    private void drawCircle(LatLng currentLocation){
+        // Instantiates a new CircleOptions object and defines the center and radius
+        CircleOptions circleOptions = new CircleOptions()
+                .center(currentLocation)
+                .strokeWidth(1)
+                .strokeColor(Color.argb(128, 255, 0, 0))
+                .fillColor(Color.argb(128, 255, 0, 0))
+                .radius(8); // In meters
+        mMap.addCircle(circleOptions);
+    }
+
 
 }
