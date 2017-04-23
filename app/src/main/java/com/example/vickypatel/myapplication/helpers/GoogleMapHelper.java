@@ -1,19 +1,17 @@
-package com.example.vickypatel.myapplication;
+package com.example.vickypatel.myapplication.helpers;
 
-import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.PermissionChecker;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.webkit.PermissionRequest;
 
+import com.example.vickypatel.myapplication.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -24,25 +22,26 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-public class MainActivity extends AppCompatActivity
-        implements OnMapReadyCallback,
+import java.util.ArrayList;
+
+/**
+ * Created by Vicky Patel on 4/22/2017.
+ */
+
+public class GoogleMapHelper implements
         ActivityCompat.OnRequestPermissionsResultCallback,
-        GoogleMap.OnMyLocationButtonClickListener,
-        GoogleApiClient.OnConnectionFailedListener,
-        GoogleApiClient.ConnectionCallbacks {
+        GoogleMap.OnMyLocationButtonClickListener{
 
-    private SupportMapFragment mapFragment;
-    private GoogleMap mMap;
-    private boolean mPermissionDenied = true;
-    private GoogleApiClient mGoogleApiClient;
-
-    // A default location (Sydney, Australia) and default zoom to use when location permission is
-    // not granted.
     private final LatLng mDefaultLocation = new LatLng(-33.8523341, 151.2106085);
     private static final int DEFAULT_ZOOM = 20;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+
+    private Activity activity;
+    private GoogleMap mMap;
+
+    private GoogleApiClient mGoogleApiClient;
     private boolean mLocationPermissionGranted;
 
     // The geographical location where the device is currently located. That is, the last-known
@@ -50,47 +49,12 @@ public class MainActivity extends AppCompatActivity
     private Location mLastKnownLocation;
     private CameraPosition mCameraPosition;
 
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
-        mGoogleApiClient.connect();
+    public GoogleMapHelper(Activity activity, GoogleApiClient googleApiClient) {
+        this.activity = activity;
+        this.mGoogleApiClient = googleApiClient;
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
-
-    }
-
-    @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         // Turn on the My Location layer and the related control on the map.
@@ -112,12 +76,12 @@ public class MainActivity extends AppCompatActivity
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+        if (ContextCompat.checkSelfPermission(activity.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         } else {
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(activity,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
@@ -141,12 +105,12 @@ public class MainActivity extends AppCompatActivity
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+        if (ContextCompat.checkSelfPermission(activity.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         } else {
-            ActivityCompat.requestPermissions(this,
+            ActivityCompat.requestPermissions(activity,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
@@ -163,7 +127,7 @@ public class MainActivity extends AppCompatActivity
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mLastKnownLocation != null) {
-            LatLng currentLocation  = new LatLng(mLastKnownLocation.getLatitude(),
+            LatLng currentLocation = new LatLng(mLastKnownLocation.getLatitude(),
                     mLastKnownLocation.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                     currentLocation, DEFAULT_ZOOM));
@@ -175,7 +139,6 @@ public class MainActivity extends AppCompatActivity
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -198,19 +161,16 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
+    public void drawPolylineOnMap(ArrayList<LatLng> points){
+        PolylineOptions lineOptions = new PolylineOptions();
+        lineOptions.addAll(points);
+        lineOptions.width(10);
+        lineOptions.color(Color.BLUE);
+        mMap.addPolyline(lineOptions);
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d("MainActivity", "Play services connection failed: ConnectionResult.getErrorCode() = "
-                + connectionResult.getErrorCode());
-    }
 
-    private void drawCircle(LatLng currentLocation){
+    private void drawCircle(LatLng currentLocation) {
         // Instantiates a new CircleOptions object and defines the center and radius
         CircleOptions circleOptions = new CircleOptions()
                 .center(currentLocation)
@@ -220,6 +180,4 @@ public class MainActivity extends AppCompatActivity
                 .radius(8); // In meters
         mMap.addCircle(circleOptions);
     }
-
-
 }

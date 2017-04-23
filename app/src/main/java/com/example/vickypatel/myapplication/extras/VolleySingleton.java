@@ -1,11 +1,10 @@
-package com.example.vickypatel.myapplication;
-
-import android.text.TextUtils;
+package com.example.vickypatel.myapplication.extras;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
+import com.example.vickypatel.myapplication.MyApp;
 
 /**
  * Created by Vicky Patel on 4/22/2017.
